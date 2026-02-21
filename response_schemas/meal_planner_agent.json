@@ -1,0 +1,13 @@
+{
+  "agent_name": "Meal Planner Agent",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "schema": {
+    "weeklyOverview": "object - 7 day overview keyed by day name, each with meal slots containing name, prepTime, calories",
+    "dayDetails": "object - keyed by day name, each with meals array containing slot, name, prepTime, cookTime, servings, ingredients array, instructions array, nutrition object, equipmentNeeded array, tips",
+    "shoppingList": "object - categorized arrays (vegetables, fruits, grains, dairy, legumes, spices, oils_and_condiments, other) each with item, quantity, estimatedCost",
+    "totalEstimatedCost": "number - total weekly cost in USD",
+    "weekSummary": "object - avgCaloriesPerDay, topNutrients array, cuisinesCovered array, budgetRating string"
+  }
+}

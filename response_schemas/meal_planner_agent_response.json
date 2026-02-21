@@ -1,0 +1,154 @@
+{
+  "agent_name": "Meal Planner Agent",
+  "agent_id": "699959c4711ecaca449d0655",
+  "description": "Generates personalized 7-day vegetarian meal plans optimized for better energy and general nutrition. Produces budget-friendly recipes using only available kitchen equipment (no air fryer), a quick weekly overview, detailed step-by-step recipes, nutritional info per meal, and a consolidated weekly shopping list with estimated costs.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "weeklyOverview": {},
+    "dayDetails": {},
+    "shoppingList": {
+      "vegetables": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "fruits": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "grains": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "dairy": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "legumes": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "spices": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "oils_and_condiments": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ],
+      "other": [
+        {
+          "item": "string",
+          "quantity": "string",
+          "estimatedCost": "number"
+        }
+      ]
+    },
+    "totalEstimatedCost": "number",
+    "weekSummary": {
+      "avgCaloriesPerDay": "number",
+      "topNutrients": [
+        "string"
+      ],
+      "cuisinesCovered": [
+        "string"
+      ],
+      "budgetRating": "string"
+    }
+  },
+  "example_response": {
+    "weeklyOverview": {},
+    "dayDetails": {},
+    "shoppingList": {
+      "vegetables": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "fruits": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "grains": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "dairy": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "legumes": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "spices": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "oils_and_condiments": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ],
+      "other": [
+        {
+          "item": "sample string",
+          "quantity": "sample string",
+          "estimatedCost": 0
+        }
+      ]
+    },
+    "totalEstimatedCost": 0,
+    "weekSummary": {
+      "avgCaloriesPerDay": 0,
+      "topNutrients": [
+        "sample string"
+      ],
+      "cuisinesCovered": [
+        "sample string"
+      ],
+      "budgetRating": "sample string"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "agents": {
+    "meal_planner_agent": {
+      "agent_id": "699959c4711ecaca449d0655",
+      "name": "Meal Planner Agent",
+      "type": "single",
+      "provider": "google",
+      "model": "gemini-2.5-pro"
+    }
+  }
+}
