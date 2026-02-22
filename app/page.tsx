@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { callAIAgent } from '@/lib/aiAgent'
+import { callAIAgent, type AIAgentResponse } from '@/lib/aiAgent'
 import { FiCalendar, FiShoppingCart, FiSettings, FiRefreshCw, FiClock, FiChevronDown, FiChevronUp, FiPrinter, FiCopy, FiCheck, FiX, FiPlus, FiInfo, FiBookmark, FiList, FiHeart } from 'react-icons/fi'
 import { LuFlame, LuSalad, LuChefHat, LuTimer, LuDollarSign, LuUtensilsCrossed, LuVegan, LuLeafyGreen } from 'react-icons/lu'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -10,7 +10,6 @@ import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Progress } from '@/components/ui/progress'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -223,19 +222,74 @@ function renderMarkdown(text: string) {
 
 // ─── Helper: parse agent response ────────────────────────────────────────────
 
-function parseAgentResponse(result: any): MealPlanData | null {
-  if (!result?.success) return null
-  let data = result?.response?.result
-  if (typeof data === 'string') {
-    try { data = JSON.parse(data) } catch { return null }
-  }
-  if (data && typeof data === 'object' && 'result' in data) {
-    data = data.result
-    if (typeof data === 'string') {
-      try { data = JSON.parse(data) } catch { return null }
+// ─── Safe agent call wrapper ─────────────────────────────────────────────────
+// Wraps callAIAgent to prevent fetchWrapper's confirm/alert dialogs from
+// breaking the UI by catching all errors gracefully.
+async function safeCallAgent(message: string, agentId: string): Promise<AIAgentResponse> {
+  try {
+    const result = await callAIAgent(message, agentId)
+    return result
+  } catch (err) {
+    return {
+      success: false,
+      response: {
+        status: 'error' as const,
+        result: {},
+        message: err instanceof Error ? err.message : 'Network error - please try again',
+      },
+      error: err instanceof Error ? err.message : 'Network error - please try again',
     }
   }
+}
+
+function tryParseJSON(value: any): any {
+  if (!value) return value
+  if (typeof value === 'string') {
+    try { return JSON.parse(value) } catch { return value }
+  }
+  return value
+}
+
+function parseAgentResponse(result: any): MealPlanData | null {
+  if (!result) return null
+
+  // Try various paths to get to the actual data
+  let data: any = null
+
+  // Path 1: Standard success response
+  if (result?.success && result?.response?.result) {
+    data = tryParseJSON(result.response.result)
+  }
+
+  // Path 2: Direct response.result
+  if (!data && result?.response?.result) {
+    data = tryParseJSON(result.response.result)
+  }
+
+  // Path 3: Raw response string
+  if (!data && result?.raw_response) {
+    data = tryParseJSON(result.raw_response)
+  }
+
+  // Path 4: Response message as JSON
+  if (!data && result?.response?.message) {
+    data = tryParseJSON(result.response.message)
+  }
+
+  // Unwrap nested result objects
+  if (data && typeof data === 'object') {
+    if ('result' in data && data.result) {
+      data = tryParseJSON(data.result)
+    }
+    if ('response' in data && data.response && !('weeklyOverview' in data)) {
+      data = tryParseJSON(data.response)
+    }
+  }
+
+  // Final validation: must be an object with at least one expected key
   if (!data || typeof data !== 'object') return null
+  if (!data.weeklyOverview && !data.dayDetails && !data.shoppingList) return null
+
   return data as MealPlanData
 }
 
@@ -1046,7 +1100,7 @@ export default function Page() {
 
 Return the complete meal plan as JSON.`
 
-      const result = await callAIAgent(message, AGENT_ID)
+      const result = await safeCallAgent(message, AGENT_ID)
       const parsed = parseAgentResponse(result)
 
       if (parsed) {
@@ -1070,7 +1124,8 @@ Return the complete meal plan as JSON.`
           localStorage.setItem('vegfit_saved_plans', JSON.stringify(plans))
         } catch { /* ignore */ }
       } else {
-        setError('Could not parse meal plan response. Please try again.')
+        const errMsg = result?.error || result?.response?.message || 'Could not parse meal plan response. Please try again.'
+        setError(errMsg)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while generating the meal plan.')
@@ -1097,7 +1152,7 @@ Return the complete meal plan as JSON.`
 
 Return ONLY the data for ${day} in the same JSON format as the dayDetails for a single day, with the "meals" array.`
 
-      const result = await callAIAgent(message, AGENT_ID)
+      const result = await safeCallAgent(message, AGENT_ID)
       const parsed = parseAgentResponse(result)
 
       if (parsed && mealPlan) {
@@ -1144,14 +1199,14 @@ Return ONLY the data for ${day} in the same JSON format as the dayDetails for a 
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-[hsl(120,25%,96%)] via-[hsl(140,30%,94%)] to-[hsl(160,25%,95%)] text-foreground flex">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50/60 to-teal-50/40 text-foreground flex">
         {/* Sidebar */}
         <Sidebar activeScreen={activeScreen} onNavigate={setActiveScreen} />
 
         {/* Main content */}
-        <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex-1 min-w-0 flex flex-col h-screen">
           {/* Header */}
-          <header className="sticky top-0 z-10 bg-white/50 backdrop-blur-[16px] border-b border-white/[0.18] px-6 py-3 flex items-center justify-between">
+          <header className="sticky top-0 z-10 bg-white/50 backdrop-blur-[16px] border-b border-white/[0.18] px-6 py-3 flex items-center justify-between flex-shrink-0">
             <div>
               <h1 className="text-lg font-semibold text-foreground tracking-tight">
                 {activeScreen === 'planner' && 'Weekly Meal Planner'}
@@ -1170,7 +1225,7 @@ Return ONLY the data for ${day} in the same JSON format as the dayDetails for a 
             </div>
           </header>
 
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <main className="p-6 space-y-5 max-w-6xl">
               {/* Status message */}
               {statusMessage && (
@@ -1289,7 +1344,7 @@ Return ONLY the data for ${day} in the same JSON format as the dayDetails for a 
                 <AgentStatus isActive={activeAgentId !== null} />
               </div>
             </main>
-          </ScrollArea>
+          </div>
         </div>
       </div>
     </ErrorBoundary>
